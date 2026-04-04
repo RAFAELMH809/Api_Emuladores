@@ -3,6 +3,8 @@
 
 BEGIN;
 
+CREATE SCHEMA IF NOT EXISTS dictionary_compat;
+
 -- 1) Add optional columns expected by dictionary where current schema differs.
 ALTER TABLE IF EXISTS emulators
   ADD COLUMN IF NOT EXISTS "updateIntervalSec" integer,
@@ -27,14 +29,14 @@ ALTER TABLE IF EXISTS room_setups
   ADD COLUMN IF NOT EXISTS "validationNotes" text;
 
 -- 2) Compatibility views with dictionary names/shape.
-CREATE OR REPLACE VIEW "instance" AS
+CREATE OR REPLACE VIEW dictionary_compat."instance" AS
 SELECT
   i.id,
   i.name,
   i."createdAt" AS created_at
 FROM instances i;
 
-CREATE OR REPLACE VIEW room AS
+CREATE OR REPLACE VIEW dictionary_compat.room AS
 SELECT
   r.id,
   r."instanceId" AS instance_id,
@@ -42,7 +44,7 @@ SELECT
   r."createdAt" AS created_at
 FROM rooms r;
 
-CREATE OR REPLACE VIEW room_setup AS
+CREATE OR REPLACE VIEW dictionary_compat.room_setup AS
 SELECT
   rs.id,
   rs."roomId" AS room_id,
@@ -55,7 +57,7 @@ SELECT
   rs."createdAt" AS created_at
 FROM room_setups rs;
 
-CREATE OR REPLACE VIEW room_setup_derived AS
+CREATE OR REPLACE VIEW dictionary_compat.room_setup_derived AS
 SELECT
   rsd.id,
   rs.id AS room_setup_id,
@@ -69,7 +71,7 @@ SELECT
 FROM room_setup_derived rsd
 JOIN room_setups rs ON rs."roomId" = rsd."roomId";
 
-CREATE OR REPLACE VIEW emulator AS
+CREATE OR REPLACE VIEW dictionary_compat.emulator AS
 SELECT
   e.id,
   e."roomId" AS room_id,
@@ -78,7 +80,7 @@ SELECT
   e."createdAt" AS created_at
 FROM emulators e;
 
-CREATE OR REPLACE VIEW device AS
+CREATE OR REPLACE VIEW dictionary_compat.device AS
 SELECT
   d.id,
   d."roomId" AS room_id,
@@ -89,7 +91,7 @@ SELECT
   COALESCE(d."isActive", d."isEnabled") AS is_active
 FROM devices d;
 
-CREATE OR REPLACE VIEW cycle AS
+CREATE OR REPLACE VIEW dictionary_compat.cycle AS
 SELECT
   c.id,
   e.id AS emulator_id,
@@ -100,7 +102,7 @@ FROM cycles c
 LEFT JOIN emulators e ON e."roomId" = c."roomId"
 LEFT JOIN room_setups rs ON rs."roomId" = c."roomId";
 
-CREATE OR REPLACE VIEW cycle_measurement AS
+CREATE OR REPLACE VIEW dictionary_compat.cycle_measurement AS
 SELECT
   cm.id,
   cm."cycleId" AS cycle_id,
@@ -137,7 +139,7 @@ SELECT
   cm."receivedAt" AS received_at
 FROM cycle_measurements cm;
 
-CREATE OR REPLACE VIEW device_action AS
+CREATE OR REPLACE VIEW dictionary_compat.device_action AS
 SELECT
   da.id,
   da."cycleId" AS cycle_id,
@@ -156,7 +158,7 @@ LEFT JOIN LATERAL (
   LIMIT 1
 ) dmap ON TRUE;
 
-CREATE OR REPLACE VIEW alarm AS
+CREATE OR REPLACE VIEW dictionary_compat.alarm AS
 SELECT
   a.id,
   a."roomId" AS room_id,

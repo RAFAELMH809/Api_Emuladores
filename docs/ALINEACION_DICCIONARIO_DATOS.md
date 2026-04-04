@@ -5,7 +5,7 @@ Este documento compara el diccionario de datos compartido (diagrama) contra la i
 ## Resumen ejecutivo
 
 - Estado operativo para integracion: SI.
-- Alineacion 1:1 con diccionario: SI (mediante capa SQL de compatibilidad).
+- Alineacion 1:1 con diccionario: SI (mediante capa SQL de compatibilidad en esquema `dictionary_compat`).
 - Recomendacion: mantener contrato API actual y usar vistas de compatibilidad para consumidores orientados al diccionario.
 - Avance fase 1: implementado feedback de estado real de actuadores (MQTT + HTTP + consulta para Front).
 
@@ -40,7 +40,7 @@ Script aplicado para compatibilidad 100%:
 ## Brechas funcionales detectadas
 
 1. A nivel de tablas canonicas de la API, persisten diferencias nominales internas; se cubren con vistas de compatibilidad.
-2. El formato EAV (`metric`, `value`) se expone por vista `cycle_measurement`.
+2. El formato EAV (`metric`, `value`) se expone por vista `dictionary_compat.cycle_measurement`.
 3. Campos nominales de diccionario para dispositivos/emuladores se cubren por columnas agregadas y vistas.
 
 ## Plan recomendado por fases

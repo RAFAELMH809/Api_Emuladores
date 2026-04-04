@@ -30,6 +30,8 @@ Para exponer el modelo solicitado en el diccionario/ERD sin romper la API actual
 
 - `database/sql/002-dictionary-compat.sql`
 
+Las vistas de diccionario quedan en el esquema `dictionary_compat`.
+
 Detalles en:
 
 - `database/README.md`

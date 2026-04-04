@@ -43,9 +43,9 @@ aplicar el script SQL de compatibilidad:
 
 - `database/sql/002-dictionary-compat.sql`
 
-Este script agrega columnas opcionales y crea vistas con nombres/campos esperados por el diccionario:
+Este script agrega columnas opcionales y crea vistas con nombres/campos esperados por el diccionario en el esquema `dictionary_compat`:
 
-- `instance`, `room`, `room_setup`, `room_setup_derived`, `emulator`, `device`, `cycle`, `cycle_measurement`, `device_action`, `alarm`
+- `dictionary_compat.instance`, `dictionary_compat.room`, `dictionary_compat.room_setup`, `dictionary_compat.room_setup_derived`, `dictionary_compat.emulator`, `dictionary_compat.device`, `dictionary_compat.cycle`, `dictionary_compat.cycle_measurement`, `dictionary_compat.device_action`, `dictionary_compat.alarm`
 
 Ejemplo con `psql`:
 
