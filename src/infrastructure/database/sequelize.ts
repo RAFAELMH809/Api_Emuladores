@@ -8,7 +8,15 @@ export const sequelize = new Sequelize({
   database: env.dbName,
   username: env.dbUser,
   password: env.dbPassword,
-  logging: env.dbLogging
+  logging: env.dbLogging,
+  dialectOptions: env.dbSsl
+    ? {
+        ssl: {
+          require: true,
+          rejectUnauthorized: env.dbSslRejectUnauthorized
+        }
+      }
+    : undefined
 });
 
 export async function connectDatabase(): Promise<void> {
