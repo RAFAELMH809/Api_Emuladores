@@ -24,6 +24,17 @@ Backend base para SafeAir construido con Node.js, TypeScript, Express, Sequelize
 
 Copiar `.env.example` a `.env` y ajustar valores segun el entorno.
 
+## Compatibilidad con diccionario de datos
+
+Para exponer el modelo solicitado en el diccionario/ERD sin romper la API actual, ejecutar:
+
+- `database/sql/002-dictionary-compat.sql`
+
+Detalles en:
+
+- `database/README.md`
+- `docs/ALINEACION_DICCIONARIO_DATOS.md`
+
 ## Documentacion y skills
 
 Se integraron dos skills para reforzar la documentacion del proyecto:
@@ -37,6 +48,7 @@ Guias agregadas:
 - `docs/EMQX_RULES.md`
 - `docs/PLANTUML.md`
 - `docs/diagrams/architecture/safeair-runtime-flow.puml`
+- `docs/ALINEACION_DICCIONARIO_DATOS.md`
 
 Plantillas de entorno:
 

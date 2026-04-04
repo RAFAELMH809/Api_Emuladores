@@ -5,9 +5,13 @@ Este documento compara el diccionario de datos compartido (diagrama) contra la i
 ## Resumen ejecutivo
 
 - Estado operativo para integracion: SI.
-- Alineacion 1:1 con diccionario: PARCIAL.
-- Recomendacion: mantener contrato actual para no romper integracion y aplicar migracion por fases.
+- Alineacion 1:1 con diccionario: SI (mediante capa SQL de compatibilidad).
+- Recomendacion: mantener contrato API actual y usar vistas de compatibilidad para consumidores orientados al diccionario.
 - Avance fase 1: implementado feedback de estado real de actuadores (MQTT + HTTP + consulta para Front).
+
+Script aplicado para compatibilidad 100%:
+
+- `database/sql/002-dictionary-compat.sql`
 
 ## Matriz de alineacion
 
@@ -35,12 +39,13 @@ Este documento compara el diccionario de datos compartido (diagrama) contra la i
 
 ## Brechas funcionales detectadas
 
-1. Persisten diferencias de esquema nominal contra el diccionario (nombres/normalizacion), aunque ya existe feedback de estado real de actuadores.
-2. El modelo de mediciones no sigue formato EAV (`metric`, `value`) del diagrama original.
-3. El modelo de dispositivo no almacena explicitamente `size`, `installed_at`, `is_active` con los mismos nombres del diccionario.
-4. `emulator` no guarda `update_interval_sec` ni `is_running`.
+1. A nivel de tablas canonicas de la API, persisten diferencias nominales internas; se cubren con vistas de compatibilidad.
+2. El formato EAV (`metric`, `value`) se expone por vista `cycle_measurement`.
+3. Campos nominales de diccionario para dispositivos/emuladores se cubren por columnas agregadas y vistas.
 
 ## Plan recomendado por fases
+
+Estado: completada la fase de compatibilidad funcional + SQL.
 
 ## Fase 0 (actual, estable)
 

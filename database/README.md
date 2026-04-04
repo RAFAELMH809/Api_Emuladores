@@ -35,3 +35,20 @@ npm run seed
 ```
 
 Sequelize crea/actualiza tablas en base a los modelos de `src/infrastructure/database/models`.
+
+## 5) Capa de compatibilidad con diccionario de datos
+
+Para alinear al 100% el esquema solicitado en el diccionario/ERD sin romper la API actual,
+aplicar el script SQL de compatibilidad:
+
+- `database/sql/002-dictionary-compat.sql`
+
+Este script agrega columnas opcionales y crea vistas con nombres/campos esperados por el diccionario:
+
+- `instance`, `room`, `room_setup`, `room_setup_derived`, `emulator`, `device`, `cycle`, `cycle_measurement`, `device_action`, `alarm`
+
+Ejemplo con `psql`:
+
+```bash
+psql "<DATABASE_URL_EXTERNA>" -f database/sql/002-dictionary-compat.sql
+```
