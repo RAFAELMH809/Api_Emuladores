@@ -4,6 +4,7 @@ import { AlarmModel, initAlarmModel } from "./alarm.model";
 import { CycleMeasurementModel, initCycleMeasurementModel } from "./cycle-measurement.model";
 import { CycleModel, initCycleModel } from "./cycle.model";
 import { DeviceActionModel, initDeviceActionModel } from "./device-action.model";
+import { DeviceStateModel, initDeviceStateModel } from "./device-state.model";
 import { DeviceModel, initDeviceModel } from "./device.model";
 import { EmulatorModel, initEmulatorModel } from "./emulator.model";
 import { InstanceModel, initInstanceModel } from "./instance.model";
@@ -30,6 +31,7 @@ function initModels(): void {
   initCycleModel(sequelize);
   initCycleMeasurementModel(sequelize);
   initDeviceActionModel(sequelize);
+  initDeviceStateModel(sequelize);
   initAlarmModel(sequelize);
 
   initialized = true;
@@ -82,6 +84,7 @@ export {
   CycleModel,
   CycleMeasurementModel,
   DeviceActionModel,
+  DeviceStateModel,
   AlarmModel
 };
 

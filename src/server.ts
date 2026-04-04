@@ -7,6 +7,7 @@ import { syncModels } from "./infrastructure/database/sync";
 import { mqttGateway } from "./infrastructure/mqtt/mqtt.gateway";
 import { container } from "./application/container";
 import { mapTelemetryPayload } from "./infrastructure/mappers/telemetry.mapper";
+import { mapActuatorStatePayload } from "./infrastructure/mappers/actuator-state.mapper";
 
 export async function startServer(): Promise<void> {
   try {
@@ -20,6 +21,15 @@ export async function startServer(): Promise<void> {
         await container.telemetryIngestionService.handleIncomingTelemetry(payload, "mqtt");
       } catch (error: unknown) {
         logger.error("Telemetry ingestion from MQTT failed", error);
+      }
+    });
+
+    mqttGateway.onActuatorState(async (message) => {
+      try {
+        const payload = mapActuatorStatePayload({ ...message.payload, emulatorId: message.emulatorId });
+        await container.actuatorStateIngestionService.handleIncomingState(payload, "mqtt");
+      } catch (error: unknown) {
+        logger.error("Actuator state ingestion from MQTT failed", error);
       }
     });
 

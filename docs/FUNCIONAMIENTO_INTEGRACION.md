@@ -13,6 +13,7 @@ Este documento resume lo esencial para que Front y Emuladores se conecten sin fr
 ## Emuladores por MQTT
 
 - Topic de entrada: `safeair/{emulatorId}/telemetry`
+- Topic de estado de actuadores: `safeair/{emulatorId}/actuator-state`
 - QoS recomendado: 1
 - Payload requerido: `temperature`, `humidity`, `co2`, `pm25`
 - Payload opcional: `timestamp`, `roomId`
@@ -22,6 +23,25 @@ Este documento resume lo esencial para que Front y Emuladores se conecten sin fr
 - Endpoint: `POST /api/v1/metrics/telemetry`
 - Header obligatorio: `x-api-key: <TELEMETRY_API_KEY>`
 - Body JSON con el mismo contrato de telemetria.
+
+### Estado de actuadores por HTTP
+
+- Endpoint: `POST /api/v1/actuators/state`
+- Header obligatorio: `x-api-key: <TELEMETRY_API_KEY>`
+- Body JSON ejemplo:
+
+```json
+{
+	"emulatorId": "emu-room-a",
+	"deviceType": "minisplit",
+	"isOn": true,
+	"mode": "cool",
+	"targetTemperature": 23,
+	"ambientTemperature": 24.2,
+	"ambientHumidity": 47.1,
+	"timestamp": "2026-04-04T17:00:00Z"
+}
+```
 
 ## Frontend
 
@@ -50,7 +70,7 @@ El estado de actuadores se expone por API para el Front con la ultima accion reg
 
 - Endpoint: `GET /api/v1/rooms/{roomId}/actuators/state`
 - Seguridad: JWT
-- Respuesta: incluye `metrics` (temperature/humidity/co2/pm25), `measuredAt`, `receivedAt` y estado por actuador (`isOn`, `lastAction`, `level`, `updatedAt`).
+- Respuesta: incluye `metrics` (temperature/humidity/co2/pm25), `measuredAt`, `receivedAt` y estado por actuador (`isOn`, `lastAction`, `mode`, `targetTemperature`, `ambientTemperature`, `ambientHumidity`, `level`, `updatedAt`, `source`).
 
 ## Datos que debes compartir al equipo
 

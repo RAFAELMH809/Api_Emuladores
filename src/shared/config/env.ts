@@ -24,6 +24,7 @@ const envSchema = z.object({
   MQTT_PASSWORD: z.string().optional(),
   MQTT_CLIENT_ID: z.string().default("safeair-api"),
   MQTT_TELEMETRY_TOPIC: z.string().default("safeair/+/telemetry"),
+  MQTT_ACTUATOR_STATE_TOPIC: z.string().default("safeair/+/actuator-state"),
   MQTT_QOS: z.coerce.number().min(0).max(2).default(1)
 });
 
@@ -55,5 +56,6 @@ export const env = {
   mqttPassword: parsed.data.MQTT_PASSWORD,
   mqttClientId: parsed.data.MQTT_CLIENT_ID,
   mqttTelemetryTopic: parsed.data.MQTT_TELEMETRY_TOPIC,
+  mqttActuatorStateTopic: parsed.data.MQTT_ACTUATOR_STATE_TOPIC,
   mqttQos: parsed.data.MQTT_QOS
 };

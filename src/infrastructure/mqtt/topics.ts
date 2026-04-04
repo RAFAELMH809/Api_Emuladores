@@ -13,3 +13,7 @@ export function roomAlarmsTopic(roomId: string): string {
 export function emulatorConfigTopic(emulatorId: string): string {
   return `safeair/${emulatorId}/config`;
 }
+
+export function actuatorStateTopic(emulatorId: string): string {
+  return `safeair/${emulatorId}/actuator-state`;
+}

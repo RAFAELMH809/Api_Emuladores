@@ -7,6 +7,11 @@ export class MetricsController {
     res.status(202).json({ accepted: true });
   }
 
+  async ingestActuatorState(req: Request, res: Response): Promise<void> {
+    await container.actuatorStateIngestionService.handleIncomingState(req.body, "rest");
+    res.status(202).json({ accepted: true });
+  }
+
   async current(req: Request, res: Response): Promise<void> {
     const result = await container.metricsQueryService.current(String(req.params.id));
     res.status(200).json(result);
