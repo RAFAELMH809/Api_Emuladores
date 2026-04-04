@@ -28,6 +28,7 @@ Este documento resume lo esencial para que Front y Emuladores se conecten sin fr
 - Base API: `<API_URL>/api/v1`
 - Login: `POST /auth/login`
 - Endpoints protegidos por JWT (`Authorization: Bearer <token>`).
+- Estado actual de actuadores por sala: `GET /rooms/{roomId}/actuators/state`
 
 ## Seguridad
 
@@ -42,6 +43,14 @@ Este documento resume lo esencial para que Front y Emuladores se conecten sin fr
 3. API persiste measurement en PostgreSQL.
 4. API evalua reglas de negocio.
 5. API publica acciones y alarmas a topics de salida.
+
+## Consulta de estado de actuadores
+
+El estado de actuadores se expone por API para el Front con la ultima accion registrada y las ultimas metricas medidas:
+
+- Endpoint: `GET /api/v1/rooms/{roomId}/actuators/state`
+- Seguridad: JWT
+- Respuesta: incluye `metrics` (temperature/humidity/co2/pm25), `measuredAt`, `receivedAt` y estado por actuador (`isOn`, `lastAction`, `level`, `updatedAt`).
 
 ## Datos que debes compartir al equipo
 

@@ -18,5 +18,10 @@ export class MetricsController {
     const result = await container.metricsQueryService.history(String(req.params.id), from, to);
     res.status(200).json(result);
   }
+
+  async actuatorState(req: Request, res: Response): Promise<void> {
+    const result = await container.metricsQueryService.actuatorState(String(req.params.id));
+    res.status(200).json(result);
+  }
 }
 

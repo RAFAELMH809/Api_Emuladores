@@ -26,4 +26,21 @@ export class DeviceActionRepository {
     const actions = await DeviceActionModel.findAll({ where: { roomId }, order: [["createdAt", "DESC"]], limit: cycles });
     return actions.length;
   }
+
+  async latestByRoomAndType(roomId: string): Promise<Partial<Record<"minisplit" | "purifier" | "extractor", DeviceActionModel>>> {
+    const actions = await DeviceActionModel.findAll({ where: { roomId }, order: [["executedAt", "DESC"]], limit: 200 });
+    const result: Partial<Record<"minisplit" | "purifier" | "extractor", DeviceActionModel>> = {};
+
+    for (const action of actions) {
+      if (!result[action.deviceType]) {
+        result[action.deviceType] = action;
+      }
+
+      if (result.minisplit && result.purifier && result.extractor) {
+        break;
+      }
+    }
+
+    return result;
+  }
 }

@@ -19,3 +19,7 @@ metricsRouter.get("/rooms/:id/metrics/current", authMiddleware, (req, res, next)
 metricsRouter.get("/rooms/:id/metrics/history", authMiddleware, (req, res, next) => {
   controller.history(req, res).catch(next);
 });
+
+metricsRouter.get("/rooms/:id/actuators/state", authMiddleware, (req, res, next) => {
+  controller.actuatorState(req, res).catch(next);
+});
