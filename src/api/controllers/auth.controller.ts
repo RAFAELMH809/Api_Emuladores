@@ -3,6 +3,11 @@ import { container } from "../../application/container";
 import { AppError } from "../../shared/errors/app-error";
 
 export class AuthController {
+  async register(req: Request, res: Response): Promise<void> {
+    const result = await container.authService.register(req.body);
+    res.status(201).json(result);
+  }
+
   async login(req: Request, res: Response): Promise<void> {
     const result = await container.authService.login(req.body);
     res.status(200).json(result);

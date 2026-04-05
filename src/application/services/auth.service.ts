@@ -2,10 +2,38 @@ import bcrypt from "bcryptjs";
 import { AppError } from "../../shared/errors/app-error";
 import { signToken } from "../../shared/security/jwt";
 import { UserRepository } from "../../infrastructure/repositories/user.repository";
-import type { LoginInput } from "../../domain/types/auth.types";
+import type { LoginInput, RegisterInput } from "../../domain/types/auth.types";
 
 export class AuthService {
   constructor(private readonly userRepository: UserRepository) {}
+
+  async register(input: RegisterInput): Promise<{ id: string; email: string; fullName: string; role: string }> {
+    if (input.password !== input.confirmPassword) {
+      throw new AppError("Passwords do not match", 422, "PASSWORD_MISMATCH");
+    }
+
+    const existing = await this.userRepository.findByEmail(input.email);
+    if (existing) {
+      throw new AppError("Email already registered", 409, "EMAIL_ALREADY_EXISTS");
+    }
+
+    const passwordHash = await bcrypt.hash(input.password, 10);
+    const fullName = `${input.firstName} ${input.lastName}`.trim();
+
+    const user = await this.userRepository.create({
+      email: input.email,
+      passwordHash,
+      fullName,
+      role: "operator"
+    });
+
+    return {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role
+    };
+  }
 
   async login(input: LoginInput): Promise<{ accessToken: string }> {
     const user = await this.userRepository.findByEmail(input.email);

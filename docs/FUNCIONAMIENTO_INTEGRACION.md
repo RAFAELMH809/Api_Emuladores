@@ -48,9 +48,23 @@ Este documento resume lo esencial para que Front y Emuladores se conecten sin fr
 ## Frontend
 
 - Base API: `<API_URL>/api/v1`
+- Registro de cuenta: `POST /auth/register`
 - Login: `POST /auth/login`
 - Endpoints protegidos por JWT (`Authorization: Bearer <token>`).
 - Estado actual de actuadores por sala: `GET /rooms/{roomId}/actuators/state`
+
+### Registro (campos requeridos)
+
+- `firstName`
+- `lastName`
+- `email`
+- `password`
+- `confirmPassword`
+
+### Login (campos requeridos)
+
+- `email`
+- `password`
 
 ## Seguridad
 
