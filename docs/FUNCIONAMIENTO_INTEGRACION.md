@@ -16,6 +16,7 @@ Este documento resume lo esencial para que Front y Emuladores se conecten sin fr
 - Topic de estado de actuadores: `safeair/{emulatorId}/actuator-state`
 - QoS recomendado: 1
 - Formato de payload recomendado: Protobuf (JSON en texto UTF-8 sigue soportado como compatibilidad).
+- Esquema Protobuf oficial: `proto/safeair.proto`
 - Payload requerido: `temperature`, `humidity`, `co2`, `pm25`
 - Payload opcional: `timestamp`, `roomId`
 
