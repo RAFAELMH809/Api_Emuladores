@@ -1,6 +1,7 @@
 import mqtt, { type MqttClient } from "mqtt";
 import { env } from "../../shared/config/env";
 import { logger } from "../../shared/config/logger";
+import { decodeMqttPayload } from "./payload-codec";
 
 type TelemetryMessage = {
   topic: string;
@@ -50,7 +51,7 @@ class MqttGateway {
     });
 
     this.client.on("message", (topic, buffer) => {
-      void this.handleIncomingMessage(topic, buffer.toString("utf-8"));
+      void this.handleIncomingMessage(topic, buffer);
     });
 
     this.client.on("error", (error) => {
@@ -84,9 +85,9 @@ class MqttGateway {
     });
   }
 
-  private async handleIncomingMessage(topic: string, payloadRaw: string): Promise<void> {
+  private async handleIncomingMessage(topic: string, payloadRaw: Buffer): Promise<void> {
     try {
-      const payload = JSON.parse(payloadRaw) as Record<string, unknown>;
+      const payload = decodeMqttPayload(topic, payloadRaw);
 
       const telemetryEmulatorId = this.extractEmulatorId(topic, "telemetry");
       if (telemetryEmulatorId && this.telemetryHandler) {
