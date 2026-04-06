@@ -19,6 +19,25 @@ export async function startServer(): Promise<void> {
       try {
         const payload = mapTelemetryPayload({ ...message.payload, emulatorId: message.emulatorId });
         await container.telemetryIngestionService.handleIncomingTelemetry(payload, "mqtt");
+
+        const embeddedStates = Array.isArray((message.payload as Record<string, unknown>).deviceStates)
+          ? ((message.payload as Record<string, unknown>).deviceStates as Array<Record<string, unknown>>)
+          : [];
+
+        for (const state of embeddedStates) {
+          await container.actuatorStateIngestionService.handleIncomingState(
+            {
+              emulatorId: String(state.emulatorId ?? message.emulatorId),
+              deviceType: String(state.deviceType ?? "") as "minisplit" | "purifier" | "extractor",
+              isOn: Boolean(state.isOn),
+              targetTemperature: state.targetTemperature !== undefined ? Number(state.targetTemperature) : undefined,
+              ambientTemperature: state.ambientTemperature !== undefined ? Number(state.ambientTemperature) : undefined,
+              ambientHumidity: state.ambientHumidity !== undefined ? Number(state.ambientHumidity) : undefined,
+              timestamp: state.timestamp ? String(state.timestamp) : undefined
+            },
+            "mqtt"
+          );
+        }
       } catch (error: unknown) {
         logger.error("Telemetry ingestion from MQTT failed", error);
       }

@@ -95,3 +95,27 @@ El estado de actuadores se expone por API para el Front con la ultima accion reg
 - Topic MQTT de entrada.
 - API key de telemetria HTTP.
 - Ejemplo de payload valido.
+
+## Verificacion de llegada de data
+
+Para validar que el backend esta recibiendo informacion de emuladores:
+
+1. Revisar logs de Render:
+	- Debe aparecer `MQTT connected`.
+	- No deben aparecer errores de parsing/validation para payload.
+
+2. Consultar base de datos:
+
+```sql
+SELECT room_id, measured_at, received_at, metric, value
+FROM dictionary_compat.cycle_measurement
+ORDER BY received_at DESC
+LIMIT 20;
+```
+
+```sql
+SELECT roomId, deviceType, isOn, mode, targetTemperature, ambientTemperature, ambientHumidity, reportedAt
+FROM device_states
+ORDER BY reportedAt DESC
+LIMIT 20;
+```
