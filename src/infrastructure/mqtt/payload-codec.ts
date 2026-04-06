@@ -84,6 +84,31 @@ const telemetryType = root.lookupType("safeair.TelemetryPayload");
 const actuatorStateType = root.lookupType("safeair.ActuatorStatePayload");
 const emulatorTelemetryType = root.lookupType("mqtt.TelemetryMessage");
 
+function tryDecodeType(type: protobuf.Type, buffer: Buffer): Record<string, unknown> | null {
+  try {
+    const message = type.decode(buffer);
+    return type.toObject(message, {
+      defaults: false,
+      enums: String,
+      longs: String,
+      bytes: String
+    }) as Record<string, unknown>;
+  } catch {
+    // Fallback when producer sends length-delimited protobuf frames.
+    try {
+      const message = type.decodeDelimited(buffer);
+      return type.toObject(message, {
+        defaults: false,
+        enums: String,
+        longs: String,
+        bytes: String
+      }) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+  }
+}
+
 function resolveKind(topic: string): MqttPayloadKind | null {
   if (topic.endsWith("/telemetry")) {
     return "telemetry";
@@ -97,15 +122,13 @@ function resolveKind(topic: string): MqttPayloadKind | null {
 }
 
 function decodeProtobuf(kind: MqttPayloadKind, buffer: Buffer): Record<string, unknown> {
-  const message = (kind === "telemetry" ? telemetryType : actuatorStateType).decode(buffer);
-  const object = (kind === "telemetry" ? telemetryType : actuatorStateType).toObject(message, {
-    defaults: false,
-    enums: String,
-    longs: String,
-    bytes: String
-  });
+  const type = kind === "telemetry" ? telemetryType : actuatorStateType;
+  const decoded = tryDecodeType(type, buffer);
+  if (!decoded) {
+    throw new Error(`Unable to decode protobuf payload for ${kind}`);
+  }
 
-  return object as Record<string, unknown>;
+  return decoded;
 }
 
 function toNumber(value: unknown): number | undefined {
@@ -114,13 +137,10 @@ function toNumber(value: unknown): number | undefined {
 }
 
 function normalizeEmulatorTelemetry(buffer: Buffer): Record<string, unknown> {
-  const message = emulatorTelemetryType.decode(buffer);
-  const raw = emulatorTelemetryType.toObject(message, {
-    defaults: false,
-    longs: String,
-    enums: String,
-    bytes: String
-  }) as Record<string, unknown>;
+  const raw = tryDecodeType(emulatorTelemetryType, buffer);
+  if (!raw) {
+    throw new Error("Unable to decode emulator telemetry protobuf payload");
+  }
 
   const roomState = (raw.roomState ?? {}) as Record<string, unknown>;
   const sensors = Array.isArray(raw.sensors) ? (raw.sensors as Array<Record<string, unknown>>) : [];
@@ -200,12 +220,17 @@ export function decodeMqttPayload(topic: string, buffer: Buffer): Record<string,
   }
 
   if (kind === "telemetry") {
-    const canonical = decodeProtobuf(kind, buffer);
-    if (hasCanonicalTelemetryFields(canonical)) {
+    const canonical = tryDecodeType(telemetryType, buffer);
+    if (canonical && hasCanonicalTelemetryFields(canonical)) {
       return canonical;
     }
 
-    return normalizeEmulatorTelemetry(buffer);
+    const normalized = normalizeEmulatorTelemetry(buffer);
+    if (hasCanonicalTelemetryFields(normalized)) {
+      return normalized;
+    }
+
+    throw new Error("Telemetry protobuf decoded but required metric fields are missing");
   }
 
   return decodeProtobuf(kind, buffer);
