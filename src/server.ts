@@ -25,16 +25,18 @@ export async function startServer(): Promise<void> {
           : [];
 
         for (const state of embeddedStates) {
+          const mappedState = mapActuatorStatePayload({
+            emulatorId: String(state.emulatorId ?? message.emulatorId),
+            deviceType: state.deviceType,
+            isOn: Boolean(state.isOn),
+            targetTemperature: state.targetTemperature !== undefined ? Number(state.targetTemperature) : undefined,
+            ambientTemperature: state.ambientTemperature !== undefined ? Number(state.ambientTemperature) : undefined,
+            ambientHumidity: state.ambientHumidity !== undefined ? Number(state.ambientHumidity) : undefined,
+            timestamp: state.timestamp ? String(state.timestamp) : undefined
+          });
+
           await container.actuatorStateIngestionService.handleIncomingState(
-            {
-              emulatorId: String(state.emulatorId ?? message.emulatorId),
-              deviceType: String(state.deviceType ?? "") as "minisplit" | "purifier" | "extractor",
-              isOn: Boolean(state.isOn),
-              targetTemperature: state.targetTemperature !== undefined ? Number(state.targetTemperature) : undefined,
-              ambientTemperature: state.ambientTemperature !== undefined ? Number(state.ambientTemperature) : undefined,
-              ambientHumidity: state.ambientHumidity !== undefined ? Number(state.ambientHumidity) : undefined,
-              timestamp: state.timestamp ? String(state.timestamp) : undefined
-            },
+            mappedState,
             "mqtt"
           );
         }
