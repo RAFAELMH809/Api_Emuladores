@@ -2,18 +2,50 @@ import type { ActuatorStateInput } from "../../domain/types/actuator.types";
 import { AppError } from "../../shared/errors/app-error";
 import { logger } from "../../shared/config/logger";
 
-const EXTERNAL_TO_INTERNAL_DEVICE_TYPE: Record<string, ActuatorStateInput["deviceType"]> = {
+const DEVICE_TYPE_ALIAS_MAP: Record<string, ActuatorStateInput["deviceType"]> = {
   minisplit: "minisplit",
-  MiniSplit: "minisplit",
+  minisplitunit: "minisplit",
+
+  airextractor: "extractor",
   extractor: "extractor",
-  AirExtractor: "extractor",
-  purifier: "purifier",
-  HumidifierPurifier: "purifier"
+
+  humidifierpurifier: "purifier",
+  purifier: "purifier"
 };
+
+const SUPPORTED_DEVICE_TYPE_VARIANTS = [
+  "MiniSplit",
+  "minisplit",
+  "mini_split",
+  "mini-split",
+  "mini split",
+  "AirExtractor",
+  "airextractor",
+  "air_extractor",
+  "air-extractor",
+  "air extractor",
+  "extractor",
+  "HumidifierPurifier",
+  "humidifierpurifier",
+  "humidifier_purifier",
+  "humidifier-purifier",
+  "humidifier purifier",
+  "purifier"
+];
+
+export function normalizeDeviceType(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/_/g, "")
+    .replace(/-/g, "");
+}
 
 export function mapExternalDeviceTypeToInternal(rawDeviceType: unknown): ActuatorStateInput["deviceType"] {
   const raw = String(rawDeviceType ?? "").trim();
-  const mapped = EXTERNAL_TO_INTERNAL_DEVICE_TYPE[raw];
+  const normalized = normalizeDeviceType(raw);
+  const mapped = DEVICE_TYPE_ALIAS_MAP[normalized];
 
   if (mapped) {
     return mapped;
@@ -21,13 +53,15 @@ export function mapExternalDeviceTypeToInternal(rawDeviceType: unknown): Actuato
 
   logger.error("Unsupported actuator deviceType received", {
     receivedDeviceType: raw,
-    supportedExternalTypes: ["MiniSplit", "AirExtractor", "HumidifierPurifier"],
+    normalizedDeviceType: normalized,
+    supportedExternalTypes: SUPPORTED_DEVICE_TYPE_VARIANTS,
     supportedInternalTypes: ["minisplit", "extractor", "purifier"]
   });
 
   throw new AppError("Unsupported actuator deviceType", 422, "ACTUATOR_DEVICE_TYPE_UNSUPPORTED", {
     receivedDeviceType: raw,
-    supportedExternalTypes: ["MiniSplit", "AirExtractor", "HumidifierPurifier"],
+    normalizedDeviceType: normalized,
+    supportedExternalTypes: SUPPORTED_DEVICE_TYPE_VARIANTS,
     supportedInternalTypes: ["minisplit", "extractor", "purifier"]
   });
 }
