@@ -25,7 +25,11 @@ const envSchema = z.object({
   MQTT_CLIENT_ID: z.string().default("safeair-api"),
   MQTT_TELEMETRY_TOPIC: z.string().default("safeair/+/telemetry"),
   MQTT_ACTUATOR_STATE_TOPIC: z.string().default("safeair/+/actuator-state"),
-  MQTT_QOS: z.coerce.number().min(0).max(2).default(1)
+  MQTT_QOS: z.coerce.number().min(0).max(2).default(1),
+  EMULATOR_MISSING_STRATEGY: z.enum(["reject", "auto-provision"]).default("reject"),
+  EMULATOR_AUTO_INSTANCE_NAME: z.string().default("Auto Provisioned Instance"),
+  EMULATOR_AUTO_ROOM_PREFIX: z.string().default("Room"),
+  EMULATOR_AUTO_CREATE_DEVICES: z.string().default("true")
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -57,5 +61,9 @@ export const env = {
   mqttClientId: parsed.data.MQTT_CLIENT_ID,
   mqttTelemetryTopic: parsed.data.MQTT_TELEMETRY_TOPIC,
   mqttActuatorStateTopic: parsed.data.MQTT_ACTUATOR_STATE_TOPIC,
-  mqttQos: parsed.data.MQTT_QOS
+  mqttQos: parsed.data.MQTT_QOS,
+  emulatorMissingStrategy: parsed.data.EMULATOR_MISSING_STRATEGY,
+  emulatorAutoInstanceName: parsed.data.EMULATOR_AUTO_INSTANCE_NAME,
+  emulatorAutoRoomPrefix: parsed.data.EMULATOR_AUTO_ROOM_PREFIX,
+  emulatorAutoCreateDevices: parsed.data.EMULATOR_AUTO_CREATE_DEVICES === "true"
 };

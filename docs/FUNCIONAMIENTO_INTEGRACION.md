@@ -119,3 +119,16 @@ FROM device_states
 ORDER BY reportedAt DESC
 LIMIT 20;
 ```
+
+## Estrategia de emulador no registrado
+
+El backend soporta estrategia configurable cuando llega `emulatorId` no existente:
+
+- `EMULATOR_MISSING_STRATEGY=reject`: responde `EMULATOR_NOT_FOUND`.
+- `EMULATOR_MISSING_STRATEGY=auto-provision`: crea instancia/sala/emulador automaticamente y asocia telemetria.
+
+Variables relacionadas:
+
+- `EMULATOR_AUTO_INSTANCE_NAME`
+- `EMULATOR_AUTO_ROOM_PREFIX`
+- `EMULATOR_AUTO_CREATE_DEVICES`

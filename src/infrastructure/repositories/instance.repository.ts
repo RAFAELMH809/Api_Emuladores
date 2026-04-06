@@ -16,6 +16,10 @@ export class InstanceRepository {
     });
   }
 
+  async findFirstActive(): Promise<InstanceModel | null> {
+    return InstanceModel.findOne({ where: { isActive: true }, order: [["createdAt", "ASC"]] });
+  }
+
   async countRooms(instanceId: string): Promise<number> {
     return RoomModel.count({ where: { instanceId } });
   }

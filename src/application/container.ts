@@ -14,6 +14,7 @@ import { ConfigurationService } from "./services/configuration.service";
 import { CycleService } from "./services/cycle.service";
 import { DeviceActionService } from "./services/device-action.service";
 import { ActuatorStateIngestionService } from "./services/actuator-state-ingestion.service";
+import { EmulatorResolutionService } from "./services/emulator-resolution.service";
 import { InstanceService } from "./services/instance.service";
 import { MetricsQueryService } from "./services/metrics-query.service";
 import { RoomService } from "./services/room.service";
@@ -34,15 +35,16 @@ const roomSetupDomainService = new RoomSetupDomainService();
 const authService = new AuthService(userRepository);
 const instanceService = new InstanceService(instanceRepository);
 const roomService = new RoomService(instanceRepository, roomRepository, roomSetupDomainService);
+const emulatorResolutionService = new EmulatorResolutionService(emulatorRepository, instanceRepository, roomRepository);
 const cycleService = new CycleService(cycleRepository);
 const metricsQueryService = new MetricsQueryService(cycleRepository, deviceActionRepository, deviceStateRepository);
 const ruleEvaluationService = new RuleEvaluationService();
 const deviceActionService = new DeviceActionService(deviceActionRepository);
-const actuatorStateIngestionService = new ActuatorStateIngestionService(emulatorRepository, deviceStateRepository);
+const actuatorStateIngestionService = new ActuatorStateIngestionService(emulatorResolutionService, deviceStateRepository);
 const alarmService = new AlarmService(alarmRepository);
 const configurationService = new ConfigurationService(configurationRepository, emulatorRepository);
 const telemetryIngestionService = new TelemetryIngestionService(
-  emulatorRepository,
+  emulatorResolutionService,
   cycleRepository,
   ruleEvaluationService,
   deviceActionService,

@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { AppError } from "../../shared/errors/app-error";
-import { EmulatorRepository } from "../../infrastructure/repositories/emulator.repository";
 import { DeviceStateRepository } from "../../infrastructure/repositories/device-state.repository";
 import type { ActuatorStateInput } from "../../domain/types/actuator.types";
+import { EmulatorResolutionService } from "./emulator-resolution.service";
 
 const actuatorStateSchema = z.object({
   emulatorId: z.string().min(1),
@@ -18,7 +18,7 @@ const actuatorStateSchema = z.object({
 
 export class ActuatorStateIngestionService {
   constructor(
-    private readonly emulatorRepository: EmulatorRepository,
+    private readonly emulatorResolutionService: EmulatorResolutionService,
     private readonly deviceStateRepository: DeviceStateRepository
   ) {}
 
@@ -29,12 +29,7 @@ export class ActuatorStateIngestionService {
     }
 
     const state = parsed.data;
-    const emulator = await this.emulatorRepository.findByExternalId(state.emulatorId);
-
-    if (!emulator) {
-      throw new AppError("Unknown emulator", 404, "EMULATOR_NOT_FOUND");
-    }
-
+    const emulator = await this.emulatorResolutionService.resolveOrProvision(state.emulatorId);
     const roomId = state.roomId ?? emulator.roomId;
     const reportedAt = state.timestamp ? new Date(state.timestamp) : new Date();
 

@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { AppError } from "../../shared/errors/app-error";
-import { EmulatorRepository } from "../../infrastructure/repositories/emulator.repository";
 import { CycleRepository } from "../../infrastructure/repositories/cycle.repository";
 import { RuleEvaluationService } from "./rule-evaluation.service";
 import { DeviceActionService } from "./device-action.service";
