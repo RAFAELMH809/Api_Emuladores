@@ -5,6 +5,7 @@ import { RuleEvaluationService } from "./rule-evaluation.service";
 import { DeviceActionService } from "./device-action.service";
 import { AlarmService } from "./alarm.service";
 import type { TelemetryInput } from "../../domain/types/telemetry.types";
+import { EmulatorResolutionService } from "./emulator-resolution.service";
 
 const telemetrySchema = z.object({
   emulatorId: z.string().min(1),
@@ -18,7 +19,7 @@ const telemetrySchema = z.object({
 
 export class TelemetryIngestionService {
   constructor(
-    private readonly emulatorRepository: EmulatorRepository,
+    private readonly emulatorResolutionService: EmulatorResolutionService,
     private readonly cycleRepository: CycleRepository,
     private readonly ruleEvaluationService: RuleEvaluationService,
     private readonly deviceActionService: DeviceActionService,
@@ -33,12 +34,7 @@ export class TelemetryIngestionService {
     }
 
     const telemetry = parsed.data;
-    const emulator = await this.emulatorRepository.findByExternalId(telemetry.emulatorId);
-
-    if (!emulator) {
-      throw new AppError("Unknown emulator", 404, "EMULATOR_NOT_FOUND");
-    }
-
+    const emulator = await this.emulatorResolutionService.resolveOrProvision(telemetry.emulatorId);
     const roomId = telemetry.roomId ?? emulator.roomId;
     const cycle = await this.cycleRepository.openOrCreate(roomId);
     const receivedAt = new Date();
