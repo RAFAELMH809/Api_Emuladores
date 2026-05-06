@@ -20,43 +20,82 @@ type ActuatorStateHandler = (message: ActuatorStateMessage) => Promise<void>;
 
 class MqttGateway {
   private client: MqttClient | null = null;
+  private connectPromise: Promise<void> | null = null;
   private telemetryHandler: TelemetryHandler | null = null;
   private actuatorStateHandler: ActuatorStateHandler | null = null;
+  private connectCount = 0;
 
   async connect(): Promise<void> {
-    if (this.client) {
+    if (this.client?.connected) {
+      logger.info("MQTT connect skipped: client already connected", {
+        clientId: env.mqttClientId,
+        connected: this.client.connected
+      });
       return;
     }
 
-    this.client = mqtt.connect(env.mqttUrl, {
-      username: env.mqttUsername,
-      password: env.mqttPassword,
-      clientId: env.mqttClientId,
-      reconnectPeriod: 3000
-    });
-
-    this.client.on("connect", () => {
-      logger.info("MQTT connected");
-      this.client?.subscribe(env.mqttTelemetryTopic, { qos: env.mqttQos as 0 | 1 | 2 }, (error) => {
-        if (error) {
-          logger.error("MQTT subscription error", error);
-        }
+    if (!this.client) {
+      logger.info("Creating MQTT client", {
+        clientId: env.mqttClientId,
+        url: env.mqttUrl,
+        reconnectPeriodMs: 3000,
+        telemetryTopic: env.mqttTelemetryTopic,
+        actuatorStateTopic: env.mqttActuatorStateTopic
       });
 
-      this.client?.subscribe(env.mqttActuatorStateTopic, { qos: env.mqttQos as 0 | 1 | 2 }, (error) => {
-        if (error) {
-          logger.error("MQTT actuator state subscription error", error);
-        }
+      this.client = mqtt.connect(env.mqttUrl, {
+        username: env.mqttUsername,
+        password: env.mqttPassword,
+        clientId: env.mqttClientId,
+        reconnectPeriod: 3000
       });
+
+      this.registerClientListeners(this.client);
+    }
+
+    if (this.connectPromise) {
+      logger.info("MQTT connect already in progress", {
+        clientId: env.mqttClientId
+      });
+      await this.connectPromise;
+      return;
+    }
+
+    this.connectPromise = new Promise<void>((resolve, reject) => {
+      const client = this.client;
+
+      if (!client) {
+        reject(new Error("MQTT client was not initialized"));
+        return;
+      }
+
+      if (client.connected) {
+        resolve();
+        return;
+      }
+
+      const handleConnect = (): void => {
+        cleanup();
+        resolve();
+      };
+
+      const handleError = (error: unknown): void => {
+        cleanup();
+        reject(error instanceof Error ? error : new Error("MQTT connection failed"));
+      };
+
+      const cleanup = (): void => {
+        client.off("connect", handleConnect);
+        client.off("error", handleError);
+      };
+
+      client.on("connect", handleConnect);
+      client.on("error", handleError);
+    }).finally(() => {
+      this.connectPromise = null;
     });
 
-    this.client.on("message", (topic, buffer) => {
-      void this.handleIncomingMessage(topic, buffer);
-    });
-
-    this.client.on("error", (error) => {
-      logger.error("MQTT client error", error);
-    });
+    await this.connectPromise;
   }
 
   onTelemetry(handler: TelemetryHandler): void {
@@ -82,6 +121,70 @@ class MqttGateway {
 
         resolve();
       });
+    });
+  }
+
+  private registerClientListeners(client: MqttClient): void {
+    client.on("connect", () => {
+      this.connectCount += 1;
+      const phase = this.connectCount === 1 ? "initial" : "reconnect";
+
+      logger.info("MQTT connected", {
+        phase,
+        connectCount: this.connectCount,
+        clientId: env.mqttClientId
+      });
+
+      client.subscribe(env.mqttTelemetryTopic, { qos: env.mqttQos as 0 | 1 | 2 }, (error) => {
+        if (error) {
+          logger.error("MQTT subscription error", error);
+          return;
+        }
+
+        logger.info("MQTT telemetry subscription ready", {
+          topic: env.mqttTelemetryTopic,
+          qos: env.mqttQos
+        });
+      });
+
+      client.subscribe(env.mqttActuatorStateTopic, { qos: env.mqttQos as 0 | 1 | 2 }, (error) => {
+        if (error) {
+          logger.error("MQTT actuator state subscription error", error);
+          return;
+        }
+
+        logger.info("MQTT actuator state subscription ready", {
+          topic: env.mqttActuatorStateTopic,
+          qos: env.mqttQos
+        });
+      });
+    });
+
+    client.on("reconnect", () => {
+      logger.info("MQTT reconnect event", {
+        clientId: env.mqttClientId
+      });
+    });
+
+    client.on("offline", () => {
+      logger.info("MQTT client offline", {
+        clientId: env.mqttClientId
+      });
+    });
+
+    client.on("close", () => {
+      logger.info("MQTT connection closed", {
+        clientId: env.mqttClientId,
+        hadConnected: this.connectCount > 0
+      });
+    });
+
+    client.on("message", (topic, buffer) => {
+      void this.handleIncomingMessage(topic, buffer);
+    });
+
+    client.on("error", (error) => {
+      logger.error("MQTT client error", error);
     });
   }
 
